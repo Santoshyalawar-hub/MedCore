@@ -1,0 +1,19 @@
+import {useState,useMemo} from "react";import {Link} from "react-router-dom";import * as svc from "../../mocks/service.js";import {ymd} from "../../shared/utils/index.js";import {useAuth} from "../../core/auth/AuthContext.jsx";
+export const Wrap=({children,narrow})=><div className={"mx-auto px-4 py-8 "+(narrow?"max-w-2xl":"max-w-7xl")}>{children}</div>;
+export const money=n=>n==null?"On request":"₹"+Number(n).toLocaleString("en-IN");
+export function HospitalCard({h,compare,onCompare}){return <div className="card flex flex-col"><div className="flex justify-between gap-2"><h3 className="font-semibold text-lg">{h.name}</h3><span className="pill bg-green-100 text-green-800">✔ Listed</span></div>
+ <p className="text-sm text-slate-600">{h.type} · {h.city}, {h.state}</p><p className="text-sm mt-2 line-clamp-2">{h.description||"Profile details coming soon."}</p>
+ <div className="flex flex-wrap gap-1 mt-2">{h.specialties.slice(0,4).map(s=><span key={s} className="pill bg-primary-50 text-primary-700">{s}</span>)}</div><p className="text-xs text-slate-500 mt-2">{h.doctorCount} doctor(s) bookable · Verified reviews: none yet</p>
+ <div className="mt-auto pt-3 flex items-center gap-3"><Link className="btn" to={"/hospitals/"+h.slug}>View &amp; book</Link>{onCompare&&<label className="text-sm flex gap-1 items-center"><input type="checkbox" checked={compare} onChange={onCompare}/> Compare</label>}</div></div>}
+export function SlotPicker({slug,doctorId,value,onChange}){const today=ymd(new Date()),max=ymd(new Date(Date.now()+60*864e5));const [date,setDate]=useState(value?.date||today);
+ const slots=useMemo(()=>{try{return svc.getSlots(slug,doctorId,date)}catch{return []}},[slug,doctorId,date,value]);
+ return <div className="space-y-3"><div><label className="lbl" htmlFor="sp-date">Date</label><input id="sp-date" type="date" className="input max-w-xs" min={today} max={max} value={date} onChange={e=>{setDate(e.target.value);onChange(null)}}/></div>
+ {!slots.length?<p className="text-sm text-slate-600">The doctor does not consult on this day. Try another date.</p>:<div className="grid grid-cols-3 sm:grid-cols-5 gap-2" role="group" aria-label="Available slots">{slots.map(s=><button type="button" key={s.time} disabled={!s.free} onClick={()=>onChange({date,time:s.time})}
+  className={"rounded-lg border py-2 text-sm "+(value?.date===date&&value?.time===s.time?"bg-primary-600 text-white":"bg-white hover:bg-primary-50 disabled:bg-slate-100 disabled:text-slate-400 disabled:line-through")}>{s.time}</button>)}</div>}</div>}
+export function PatientAuth({start="login",onDone}){const {login}=useAuth();const [tab,setTab]=useState(start);const [v,setV]=useState({name:"",email:"",phone:"",password:""});const [er,setEr]=useState("");
+ const f=(k,l,t="text")=><div key={k}><label className="lbl">{l}</label><input className="input" type={t} value={v[k]} onChange={e=>setV({...v,[k]:e.target.value})} autoComplete={k==="password"?"current-password":k}/></div>;
+ const submit=e=>{e.preventDefault();try{if(tab==="register")svc.registerPatient(v);onDone?.(login(v.email,v.password))}catch(x){setEr(x.message)}};
+ return <form onSubmit={submit} className="card space-y-3 max-w-md" noValidate><div className="flex gap-2">{[["login","Sign in"],["register","Create patient account"]].map(([k,l])=><button type="button" key={k} onClick={()=>{setTab(k);setEr("")}} className={"px-3 py-1.5 rounded-lg text-sm font-medium "+(tab===k?"bg-primary-600 text-white":"bg-slate-100")}>{l}</button>)}</div>
+ {tab==="register"&&<>{f("name","Full name")}{f("phone","Mobile (10 digits)","tel")}</>}{f("email","Email","email")}{f("password","Password","password")}
+ {er&&<p className="err" role="alert">{er}</p>}<button className="btn w-full">{tab==="login"?"Sign in":"Create account & continue"}</button>
+ <p className="text-xs text-slate-500">Demo patient: patient@citycare.com / Demo@123</p></form>}

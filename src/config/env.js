@@ -1,0 +1,1 @@
+export const ENV={name:import.meta.env.VITE_APP_ENV||"development",apiBase:import.meta.env.VITE_API_BASE_URL||"/api/v1",useMocks:(import.meta.env.VITE_USE_MOCKS??"true")!=="false",idleMinutes:Number(import.meta.env.VITE_SESSION_IDLE_MINUTES||15)};

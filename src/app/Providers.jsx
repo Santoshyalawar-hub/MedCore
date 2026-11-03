@@ -1,0 +1,3 @@
+import {Component} from "react";import {AuthProvider} from "../core/auth/AuthContext.jsx";import {NotifyProvider} from "../features/notifications/NotifyContext.jsx";import {ToastProvider} from "../features/notifications/ToastContext.jsx";
+class Boundary extends Component{state={e:null};static getDerivedStateFromError(e){return {e}}render(){return this.state.e?<div role="alert" className="p-10 text-center"><h1 className="text-xl font-bold">Something went wrong</h1><button className="btn mt-4" onClick={()=>location.reload()}>Reload</button></div>:this.props.children}}
+export const Providers=({children})=><Boundary><AuthProvider><NotifyProvider><ToastProvider>{children}</ToastProvider></NotifyProvider></AuthProvider></Boundary>;

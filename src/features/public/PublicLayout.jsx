@@ -1,0 +1,16 @@
+import {useState} from "react";import {Link,NavLink,Outlet} from "react-router-dom";import {useAuth} from "../../core/auth/AuthContext.jsx";import {basePath} from "../../core/rbac.js";
+const L=[["/","Home"],["/hospitals","Find Hospitals"],["/doctors","Find Doctors"],["/services","Specialties & Services"],["/how-it-works","How It Works"],["/about","About Us"],["/contact","Contact"]];
+export default function PublicLayout(){const {user,logout}=useAuth();const [open,setOpen]=useState(false);const show=open?"flex":"hidden";
+ return <div className="min-h-screen flex flex-col"><header className="bg-white border-b sticky top-0 z-20"><div className="max-w-7xl mx-auto px-4 py-2 flex items-center gap-1 flex-wrap">
+  <Link to="/" className="font-bold text-primary-700 text-base mr-2 whitespace-nowrap">🏥 MedCore</Link>
+  <button className="lg:hidden btn-o ml-auto" aria-expanded={open} aria-label="Toggle menu" onClick={()=>setOpen(!open)}>☰</button>
+  <nav aria-label="Main" className={show+" lg:flex flex-col lg:flex-row w-full lg:w-auto gap-1 lg:flex-1"}>{L.map(([to,l])=><NavLink key={to} to={to} end={to==="/"} onClick={()=>setOpen(false)} className={({isActive})=>"px-2.5 py-1.5 rounded-md text-[13px] font-medium whitespace-nowrap "+(isActive?"bg-primary-50 text-primary-700":"text-slate-600 hover:bg-slate-100")}>{l}</NavLink>)}</nav>
+  <div className={show+" lg:flex gap-1.5 flex-wrap [&_.btn]:!px-3 [&_.btn]:!py-1.5 [&_.btn]:!text-xs [&_.btn-o]:!px-3 [&_.btn-o]:!py-1.5 [&_.btn-o]:!text-xs"}>{user?<><Link className="btn-o" to={basePath(user)+"/dashboard"}>My dashboard</Link><button className="btn-o" onClick={logout}>Logout</button></>:<Link className="btn-o" to="/login">Login</Link>}
+   <Link className="btn-o" to="/request-demo">Request a Demo</Link><Link className="btn" to="/register-hospital">Register Your Hospital</Link></div></div></header>
+ <main className="flex-1"><Outlet/></main>
+ <footer className="bg-slate-900 text-slate-300 text-sm"><div className="max-w-7xl mx-auto px-4 py-8 grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+  <div><div className="font-bold text-white mb-2">🏥 MedCore</div><p>Hospital discovery, appointment booking and hospital management in one platform.</p></div>
+  <div><div className="font-semibold text-white mb-2">Patients</div><ul className="space-y-1"><li><Link to="/hospitals">Find hospitals</Link></li><li><Link to="/doctors">Find doctors</Link></li><li><Link to="/faq">Booking guidance &amp; FAQ</Link></li></ul></div>
+  <div><div className="font-semibold text-white mb-2">Hospitals</div><ul className="space-y-1"><li><Link to="/register-hospital">Register your hospital</Link></li><li><Link to="/request-demo">Request a demo</Link></li><li><Link to="/login">Staff login</Link></li></ul></div>
+  <div><div className="font-semibold text-white mb-2">Company</div><ul className="space-y-1"><li><Link to="/contact">Contact &amp; support</Link></li><li><Link to="/privacy">Privacy policy</Link></li><li><Link to="/terms">Terms of service</Link></li></ul></div></div>
+  <div className="text-center text-xs py-3 border-t border-slate-700">Demo environment · sample data only · not for medical emergencies — call your local emergency number.</div></footer></div>}

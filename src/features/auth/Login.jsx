@@ -1,0 +1,9 @@
+import {useState} from "react";import {Link,useNavigate} from "react-router-dom";import {useAuth} from "../../core/auth/AuthContext.jsx";import {basePath} from "../../core/rbac.js";
+import {validate,rules} from "../../shared/validation/index.js";import AuthLayout from "../../layouts/AuthLayout.jsx";
+export default function Login(){const {login}=useAuth();const go=useNavigate();const [v,setV]=useState({email:"",password:""});const [er,setEr]=useState({});
+ const submit=e=>{e.preventDefault();const x=validate({email:[rules.required("Email"),rules.email],password:[rules.required("Password")]},v);setEr(x);if(Object.keys(x).length)return;
+  try{const u=login(v.email,v.password);go(basePath(u)+"/dashboard")}catch(err){setEr({form:err.message})}};
+ return <AuthLayout><div className="grid md:grid-cols-2 gap-4"><form onSubmit={submit} className="card space-y-3" noValidate><Link to="/" className="text-xs underline">â† Back to home</Link><h1 className="text-2xl font-bold">ðŸ¥ MedCore sign in</h1><p className="text-sm text-slate-600">Platform owner, hospital staff and patients sign in here.</p>
+  <div><label className="lbl" htmlFor="l-email">Email</label><input id="l-email" className="input" type="email" autoComplete="username" value={v.email} onChange={e=>setV({...v,email:e.target.value})}/>{er.email&&<p className="err">{er.email}</p>}</div>
+  <div><label className="lbl" htmlFor="l-pw">Password</label><input id="l-pw" className="input" type="password" autoComplete="current-password" value={v.password} onChange={e=>setV({...v,password:e.target.value})}/>{er.password&&<p className="err">{er.password}</p>}</div>{er.form&&<p className="err" role="alert">{er.form}</p>}
+  <button className="btn w-full">Sign in</button><div className="flex justify-between text-sm"><Link className="underline" to="/forgot-password">Forgot password?</Link><Link className="underline" to="/signup">New patient? Create account</Link></div></form></div></AuthLayout>}

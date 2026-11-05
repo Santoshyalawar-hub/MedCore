@@ -2,7 +2,7 @@ import {it,expect,afterEach} from "vitest";import {render,screen,fireEvent,waitF
 import {Providers} from "../app/Providers.jsx";import App from "../app/App.jsx";import {ymd} from "../shared/utils/index.js";
 afterEach(cleanup);const R=p=>render(<MemoryRouter initialEntries={[p]}><Providers><App/></Providers></MemoryRouter>);
 it("the default route is the public homepage (not login) with the required sections",()=>{sessionStorage.clear();const {container:c}=R("/");
- expect(c.querySelector("input[type=password]")).toBeNull();for(const t of ["Find Hospitals","Find Doctors","Specialties & Services","How It Works","About Us","Contact","Login","Request a Demo","Register Your Hospital","Featured hospitals","subscription plans","Privacy policy"])expect(c.textContent).toContain(t)});
+ expect(c.querySelector("input[type=password]")).toBeNull();for(const t of ["Find Hospitals","Find Doctors","Specialties & Services","How It Works","About Us","Contact","Login","Request a Demo","Register Your Hospital","Featured Hospitals","Subscription Plans","Privacy Policy"])expect(c.textContent).toContain(t)});
 for(const p of ["/hospitals","/hospitals/citycare","/hospitals/sunrise","/doctors","/compare?ids=citycare,sunrise","/services","/how-it-works","/about","/contact","/faq","/privacy","/terms","/register-hospital","/request-demo","/signup","/login","/forgot-password"])
  it("public route renders: "+p,()=>{sessionStorage.clear();const {container:c}=R(p);expect(c.textContent).not.toContain("Something went wrong");expect(c.textContent.length).toBeGreaterThan(30)});
 it("UI journey: pick slot → sign in as patient → confirm → appears in My Appointments",async()=>{sessionStorage.clear();const {container:c}=R("/book/citycare/D-1");

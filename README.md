@@ -19,3 +19,15 @@ A complete **front-end with a simulated backend** (rules enforced in `src/mocks/
 The site opens on the **public homepage**. Login: top-right → Login. Demo password for seeded accounts: `Demo@123`
 (admin@medcore.io · admin@citycare.com · admin@sunrise.com · doctor@/nurse@/reception@/pharmacy@/lab@/accounts@/hr@/stores@citycare.com · patient@citycare.com).
 Emails are shown in Platform Owner → Email Outbox and as "Demo mode" links. "Reset" = clear this site's data in your browser.
+
+## Adding Real Videos and Photos (Media Pack)
+All media is configured in `src/config/media.js` and self-hosted in `public/videos` and `public/images` (see `public/videos/README.txt` for the exact file names). The site works with none of these files: anything missing falls back to its poster, then to a navy-to-teal gradient. After adding files, rebuild; for `standalone/index.html`, keep the `videos` and `images` folders next to it.
+
+Compress each clip (10-15 s, 1280x720, no audio, under 3 MB), then make a poster and a photo:
+```
+ffmpeg -i in.mp4 -t 12 -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,fps=24" -an -c:v libx264 -preset veryfast -crf 28 -movflags +faststart -pix_fmt yuv420p out.mp4
+ffmpeg -i in.mp4 -t 12 -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720,fps=24" -an -c:v libvpx-vp9 -b:v 0 -crf 36 -row-mt 1 out.webm
+ffmpeg -ss 1 -i in.mp4 -frames:v 1 -vf "scale=1280:720:force_original_aspect_ratio=increase,crop=1280:720" -q:v 5 poster.jpg
+ffmpeg -i photo.jpg -vf "scale=1280:-2" -c:v libwebp -quality 72 photo.webp
+```
+For a seamless loop pick a clip that starts and ends on a similar frame. Check sizes with `ls -l` and raise `-crf` if a file is over its limit.

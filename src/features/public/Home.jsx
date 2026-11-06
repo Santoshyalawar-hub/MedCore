@@ -252,7 +252,7 @@ function Journey() {
                 className="aspect-video rounded-2xl ring-1 ring-white/15 shadow-2xl shadow-black/40"
               >
                 <span className="absolute left-3 top-3 rounded-full bg-navy-950/60 px-3 py-1 text-xs font-semibold ring-1 ring-white/25 backdrop-blur">
-                  Step {i + 1} of 9 Â·{" "}
+                  Step {i + 1} of 9 |{" "}
                   {role === "p" ? "For Patients" : "For Hospitals"}
                 </span>
               </Clip>
@@ -466,7 +466,7 @@ export default function Home() {
         )}
         {hs.length > 0 && (
           <p className="text-sm text-slate-600 mt-4">
-            {hs.length} published hospital(s) Â· {nDocs} bookable doctor(s) on
+            {hs.length} published hospital(s) | {nDocs} bookable doctor(s) on
             this platform (live count).
           </p>
         )}
@@ -512,7 +512,7 @@ export default function Home() {
                   <div>
                     <h3 className="font-semibold leading-snug">{d.name}</h3>
                     <p className="text-sm text-slate-600">
-                      {d.dept} Â· {d.qual}
+                      {d.dept} | {d.qual}
                     </p>
                   </div>
                 </div>
@@ -541,7 +541,7 @@ export default function Home() {
       <S
         alt
         title="Healthcare Services"
-        sub="Services are listed by each participating hospital â€” these are the ones currently published:"
+        sub="Services are listed by each participating hospital - these are the ones currently published:"
       >
         {services.length ? (
           <div className="flex flex-wrap gap-2.5">

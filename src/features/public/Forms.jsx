@@ -22,7 +22,7 @@ const F = ({ l, k, v, set, t = "text", req = true, opts, er }) => (
         value={v[k] || ""}
         onChange={(e) => set({ ...v, [k]: e.target.value })}
       >
-        <option value="">Selectâ€¦</option>
+        <option value="">Select...</option>
         {opts.map((o) =>
           Array.isArray(o) ? (
             <option key={o[0]} value={o[0]}>
@@ -76,7 +76,7 @@ export function RegisterHospital() {
   const [done, setDone] = useState(null);
   const plans = Object.entries(getPlans()).map(([k, p]) => [
     k,
-    `${p.name} â€“ ${p.price != null ? money(p.price) + " / " + p.cycle : p.cycle}`,
+    `${p.name} - ${p.price != null ? money(p.price) + " / " + p.cycle : p.cycle}`,
   ]);
   const submit = (e) => {
     e.preventDefault();
@@ -91,7 +91,7 @@ export function RegisterHospital() {
       <Wrap narrow>
         <div className="card">
           <h1 className="text-xl font-bold">
-            âœ… Application {done.id} submitted
+            Application {done.id} submitted
           </h1>
           <p className="text-sm mt-2">
             We sent a verification email to <b>{v.email}</b>. After you verify
@@ -107,7 +107,7 @@ export function RegisterHospital() {
       <h1 className="text-2xl font-bold mb-1">Register your hospital</h1>
       <p className="text-sm text-slate-600 mb-4">
         Collected only for verification and onboarding. Subscription is
-        activated after verification and payment/contract confirmation â€” not by
+        activated after verification and payment/contract confirmation - not by
         submitting this form.
       </p>
       <form onSubmit={submit} className="card space-y-3" noValidate>
@@ -195,7 +195,7 @@ export function RequestDemo() {
     return (
       <Wrap narrow>
         <div className="card">
-          <h1 className="text-xl font-bold">âœ… Enquiry received</h1>
+          <h1 className="text-xl font-bold">Enquiry received</h1>
           <p className="text-sm mt-2">
             Thank you. Our team will contact you at {v.email} about your
             preferred time.
@@ -269,7 +269,7 @@ export function TokenPage({ kind }) {
         {st === "ok" && (
           <>
             <p className="text-green-700">
-              âœ”{" "}
+              {""}
               {kind === "verify"
                 ? "Email verified. Your application is now under review."
                 : "Done. You can now sign in."}
@@ -284,7 +284,7 @@ export function TokenPage({ kind }) {
             {msg}
           </p>
         )}
-        {st === "working" && <p>Verifyingâ€¦</p>}
+        {st === "working" && <p>Verifying...</p>}
         {(st === "form" || st === "err2") && (
           <form onSubmit={submit} className="space-y-3" noValidate>
             <div>

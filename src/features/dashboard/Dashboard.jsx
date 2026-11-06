@@ -10,14 +10,14 @@ function Panel({ p, accent, aiOn }) {
   if (type === "ai")
     return (
       <Card
-        title="âœ¨ AI insights"
+        title="AI insights"
         className="bg-gradient-to-br from-indigo-50 to-white"
       >
         {aiOn ? (
           <ul className="space-y-2 text-sm">
             {items.map((i) => (
               <li key={i} className="flex gap-2">
-                <span>â€¢</span>
+                <span aria-hidden="true">&bull;</span>
                 {i}
               </li>
             ))}
@@ -78,7 +78,7 @@ export default function Dashboard() {
           {greeting()}, {user.name.split(" ")[0]}
         </h1>
         <p className="text-sm text-slate-200">
-          {r.label} Â· {d.sub}
+          {r.label} | {d.sub}
         </p>
       </WelcomeBanner>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -87,7 +87,7 @@ export default function Dashboard() {
             key={l}
             label={l}
             value={v}
-            delta={dl === "â€”" ? null : dl}
+            delta={dl === "—" ? null : dl}
             accent={r.accent}
           />
         ))}

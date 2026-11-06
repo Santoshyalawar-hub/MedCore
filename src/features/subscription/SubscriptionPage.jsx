@@ -1,6 +1,63 @@
-import {useAuth} from "../../core/auth/AuthContext.jsx";import {FEATURE_LABELS} from "../../config/plans.js";import {getPlans} from "../../mocks/store.js";import {featuresOf} from "../../core/rbac.js";import {Card} from "../../shared/ui/index.jsx";
-export const UpgradePrompt=({feature})=><div className="card max-w-lg mx-auto text-center"><div className="text-4xl">🔒</div><h1 className="text-xl font-bold mt-2">Available on a higher plan</h1><p className="text-sm text-slate-600 mt-2">“{FEATURE_LABELS[feature]}” is not included in your current subscription. Contact your hospital administrator or MedCore sales to upgrade.</p></div>;
-export default function SubscriptionPage(){const {tenant}=useAuth();const PLANS=getPlans(),cur=PLANS[tenant.plan],mine=featuresOf(tenant);
- return <div className="space-y-5"><Card title="Current subscription"><p className="text-lg font-bold">{cur.name} <span className="text-sm font-normal text-slate-600">· {tenant.subscription}{tenant.trialUntil?` (trial until ${tenant.trialUntil})`:""} · {tenant.status}</span></p><p className="text-sm text-slate-600">{tenant.name} · {tenant.city}</p></Card>
- <Card title="Feature entitlements"><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-left text-slate-500"><tr><th className="py-2">Feature</th>{Object.values(PLANS).map(p=><th key={p.name}>{p.name}</th>)}</tr></thead><tbody>
- {Object.entries(FEATURE_LABELS).map(([f,l])=><tr key={f} className="border-t"><td className="py-2">{l}</td>{Object.entries(PLANS).map(([k,p])=><td key={k}>{p.features.includes(f)?"✔":"—"}</td>)}</tr>)}</tbody></table></div></Card></div>}
+import { useAuth } from "../../core/auth/AuthContext.jsx";
+import { FEATURE_LABELS } from "../../config/plans.js";
+import { getPlans } from "../../mocks/store.js";
+import { featuresOf } from "../../core/rbac.js";
+import { Card } from "../../shared/ui/index.jsx";
+export const UpgradePrompt = ({ feature }) => (
+  <div className="card max-w-lg mx-auto text-center">
+    <div className="text-4xl">🔒</div>
+    <h1 className="text-xl font-bold mt-2">Available on a higher plan</h1>
+    <p className="text-sm text-slate-600 mt-2">
+      “{FEATURE_LABELS[feature]}” is not included in your current subscription.
+      Contact your hospital administrator or MedCore sales to upgrade.
+    </p>
+  </div>
+);
+export default function SubscriptionPage() {
+  const { tenant } = useAuth();
+  const PLANS = getPlans(),
+    cur = PLANS[tenant.plan],
+    mine = featuresOf(tenant);
+  return (
+    <div className="space-y-5">
+      <Card title="Current subscription">
+        <p className="text-lg font-bold">
+          {cur.name}{" "}
+          <span className="text-sm font-normal text-slate-600">
+            · {tenant.subscription}
+            {tenant.trialUntil
+              ? ` (trial until ${tenant.trialUntil})`
+              : ""} · {tenant.status}
+          </span>
+        </p>
+        <p className="text-sm text-slate-600">
+          {tenant.name} · {tenant.city}
+        </p>
+      </Card>
+      <Card title="Feature entitlements">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="text-left text-slate-500">
+              <tr>
+                <th className="py-2">Feature</th>
+                {Object.values(PLANS).map((p) => (
+                  <th key={p.name}>{p.name}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(FEATURE_LABELS).map(([f, l]) => (
+                <tr key={f} className="border-t">
+                  <td className="py-2">{l}</td>
+                  {Object.entries(PLANS).map(([k, p]) => (
+                    <td key={k}>{p.features.includes(f) ? "✔" : "—"}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  );
+}

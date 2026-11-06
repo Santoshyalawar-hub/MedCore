@@ -1,5 +1,51 @@
-import {useState,useEffect} from "react";import {useAsync} from "../../shared/hooks/index.js";import {api} from "../../core/api/http.js";import {Card,Skeleton,Pill} from "../../shared/ui/index.jsx";import {useAuth} from "../../core/auth/AuthContext.jsx";import {can} from "../../core/rbac.js";
-export default function AutomationPage(){const {user}=useAuth();const {data,loading}=useAsync(()=>api.get("/automation"));const [on,setOn]=useState([]);
- useEffect(()=>{if(data)setOn(data.map(r=>r[3]))},[data]);const w=can(user,"automation","write");
- return <Card title="Workflow automation rules">{loading?<Skeleton/>:<ul className="divide-y">{data.map(([n,d,m],i)=><li key={n} className="py-3 flex justify-between gap-3 items-center"><div><p className="font-medium text-sm">{n}</p><p className="text-xs text-slate-500">{d} · {m}</p></div>
- <div className="flex items-center gap-3"><Pill>{on[i]?"Enabled":"Draft"}</Pill><button disabled={!w} className="btn-o" onClick={()=>setOn(on.map((v,j)=>j===i?!v:v))}>{on[i]?"Disable":"Enable"}</button></div></li>)}</ul>}{!w&&<p className="text-xs text-slate-500 mt-3">Read-only for your role.</p>}</Card>}
+import { useState, useEffect } from "react";
+import { useAsync } from "../../shared/hooks/index.js";
+import { api } from "../../core/api/http.js";
+import { Card, Skeleton, Pill } from "../../shared/ui/index.jsx";
+import { useAuth } from "../../core/auth/AuthContext.jsx";
+import { can } from "../../core/rbac.js";
+export default function AutomationPage() {
+  const { user } = useAuth();
+  const { data, loading } = useAsync(() => api.get("/automation"));
+  const [on, setOn] = useState([]);
+  useEffect(() => {
+    if (data) setOn(data.map((r) => r[3]));
+  }, [data]);
+  const w = can(user, "automation", "write");
+  return (
+    <Card title="Workflow automation rules">
+      {loading ? (
+        <Skeleton />
+      ) : (
+        <ul className="divide-y">
+          {data.map(([n, d, m], i) => (
+            <li
+              key={n}
+              className="py-3 flex justify-between gap-3 items-center"
+            >
+              <div>
+                <p className="font-medium text-sm">{n}</p>
+                <p className="text-xs text-slate-500">
+                  {d} · {m}
+                </p>
+              </div>
+              <div className="flex items-center gap-3">
+                <Pill>{on[i] ? "Enabled" : "Draft"}</Pill>
+                <button
+                  disabled={!w}
+                  className="btn-o"
+                  onClick={() => setOn(on.map((v, j) => (j === i ? !v : v)))}
+                >
+                  {on[i] ? "Disable" : "Enable"}
+                </button>
+              </div>
+            </li>
+          ))}
+        </ul>
+      )}
+      {!w && (
+        <p className="text-xs text-slate-500 mt-3">Read-only for your role.</p>
+      )}
+    </Card>
+  );
+}

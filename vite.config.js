@@ -1,4 +1,8 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { viteSingleFile } from "vite-plugin-singlefile";
-export default defineConfig({ base: "./", plugins: [react(), viteSingleFile()], test: {environment: "jsdom", testTimeout: 120000} });
+export default defineConfig({
+  base: "./",
+  plugins: [react(), viteSingleFile()],
+  test: { environment: "jsdom", testTimeout: 120000 },
+});

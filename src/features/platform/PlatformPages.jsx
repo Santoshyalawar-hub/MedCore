@@ -1,30 +1,513 @@
-import {useState} from "react";import {Link} from "react-router-dom";import * as svc from "../../mocks/service.js";import {getPlans} from "../../mocks/store.js";import {FEATURE_LABELS} from "../../config/plans.js";import {useAuth} from "../../core/auth/AuthContext.jsx";
-import {Card,Pill} from "../../shared/ui/index.jsx";import Modal from "../../shared/ui/Modal.jsx";import {useToast} from "../notifications/ToastContext.jsx";
-const useBump=()=>{const [,b]=useState(0);return ()=>b(x=>x+1)};const money=n=>n==null?"quote":"₹"+Number(n).toLocaleString("en-IN");
-const Table=({cols,children})=><div className="overflow-x-auto"><table className="w-full text-sm"><thead className="text-left text-slate-500"><tr>{cols.map(c=><th key={c} className="py-2 pr-4">{c}</th>)}</tr></thead><tbody>{children}</tbody></table></div>;
-const Feat=({value,onChange})=><div className="grid grid-cols-2 gap-1 text-sm">{Object.entries(FEATURE_LABELS).map(([k,l])=><label key={k} className="flex gap-2"><input type="checkbox" checked={value.includes(k)} onChange={e=>onChange(e.target.checked?[...value,k]:value.filter(x=>x!==k))}/>{l}</label>)}</div>;
-export function Applications(){const {user}=useAuth(),toast=useToast(),bump=useBump(),[sel,setSel]=useState(null),[res,setRes]=useState(null),[f,setF]=useState({decision:"approve",basis:"payment",note:"",features:[]});const rows=svc.listRegistrations(user),plans=getPlans();
- const go=()=>{try{const o=svc.reviewRegistration(user,sel.id,f);toast("Decision saved");setRes(o.demoLink?o:null);setSel(null);bump()}catch(e){toast(e.message,"err")}};
- return <Card title="Hospital applications">{!rows.length?<p className="text-sm text-slate-600 py-4">No applications yet. They appear when a hospital uses “Register Your Hospital”.</p>:<Table cols={["ID","Hospital","Plan","City","Email","Status",""]}>{rows.map(r=><tr key={r.id} className="border-t"><td className="py-2 pr-4">{r.id}</td><td>{r.name}</td><td>{plans[r.plan]?.name}</td><td>{r.city}</td><td>{r.emailVerified?"✔ verified":"not verified"}</td><td><Pill>{r.status.replace(/_/g," ")}</Pill></td>
-  <td><button className="btn-o" onClick={()=>{setSel(r);setF({decision:"approve",basis:"payment",note:"",features:[]})}}>Review</button></td></tr>)}</Table>}
-  {sel&&<Modal wide title={`Review ${sel.id} – ${sel.name}`} onClose={()=>setSel(null)}><dl className="grid grid-cols-2 gap-2 text-sm mb-4">{[["Type",sel.type],["Email",sel.email],["Phone",sel.phone],["Address",`${sel.address}, ${sel.city}, ${sel.state} ${sel.postal}`],["Representative",`${sel.repName} (${sel.repDesignation})`],["Licence",sel.license||"—"],["Departments",sel.departments],["Plan",plans[sel.plan]?.name]].map(([k,v])=><div key={k}><dt className="text-slate-500">{k}</dt><dd className="font-medium">{v}</dd></div>)}</dl>
-   {sel.tenantSlug?<p className="text-sm text-green-700">Already approved → tenant “{sel.tenantSlug}”.</p>:<div className="space-y-3"><div><label className="lbl">Decision</label><select className="input" value={f.decision} onChange={e=>setF({...f,decision:e.target.value})}><option value="approve">Approve & create hospital</option><option value="more_info">Request more information</option><option value="reject">Reject</option></select></div>
-   {f.decision==="approve"&&<><div><label className="lbl">Subscription activation basis</label><select className="input" value={f.basis} onChange={e=>setF({...f,basis:e.target.value})}><option value="payment">Payment verified</option><option value="trial">30-day trial</option><option value="contract">Manually approved (contract)</option></select></div>
-    {plans[sel.plan]?.custom&&<div><label className="lbl">Approved features (Custom plan)</label><Feat value={f.features} onChange={x=>setF({...f,features:x})}/></div>}</>}
-   {f.decision!=="approve"&&<div><label className="lbl">Note to applicant</label><textarea className="input" rows="3" value={f.note} onChange={e=>setF({...f,note:e.target.value})}/></div>}<div className="flex justify-end gap-2"><button className="btn-o" onClick={()=>setSel(null)}>Cancel</button><button className="btn" onClick={go}>Save decision</button></div></div>}</Modal>}
-  {res&&<Modal title="Hospital created" onClose={()=>setRes(null)}><p className="text-sm">An activation email was queued for the hospital administrator (see Email Outbox).</p><p className="text-sm mt-2 bg-amber-50 rounded p-2">Demo mode link: <Link className="underline" to={res.demoLink.split("#")[1]} onClick={()=>setRes(null)}>open activation page</Link></p></Modal>}</Card>}
-export function Hospitals(){const {user}=useAuth(),toast=useToast(),bump=useBump(),[pick,setPick]=useState(null),[ft,setFt]=useState([]);const plans=getPlans();
- const run=fn=>{try{fn();bump();toast("Updated")}catch(e){toast(e.message,"err")}};
- return <Card title="Hospitals (tenants)"><Table cols={["Code","Hospital","City","Plan","Subscription","Users","Status","Actions"]}>{svc.listTenants(user).map(t=><tr key={t.slug} className="border-t"><td className="py-2 pr-4">{t.code}</td><td>{t.name}{!t.published&&<span className="text-xs text-slate-500"> (not published)</span>}</td><td>{t.city}</td>
-  <td><select aria-label={"Plan for "+t.name} className="border rounded-lg text-xs py-1" value={t.plan} onChange={e=>plans[e.target.value].custom?(setPick(t),setFt(t.features||[])):run(()=>svc.setTenantPlan(user,t.slug,e.target.value))}>{Object.entries(plans).map(([k,p])=><option key={k} value={k}>{p.name}</option>)}</select></td><td>{t.subscription}{t.trialUntil?` → ${t.trialUntil}`:""}</td><td>{t.users}</td><td><Pill>{t.status}</Pill></td>
-  <td className="space-x-1 whitespace-nowrap">{t.status!=="active"?<button className="btn-o" onClick={()=>run(()=>svc.setTenantStatus(user,t.slug,"active"))}>Activate</button>:<><button className="btn-o" onClick={()=>run(()=>svc.setTenantStatus(user,t.slug,"suspended"))}>Suspend</button><button className="btn-o" onClick={()=>run(()=>svc.setTenantStatus(user,t.slug,"expired"))}>Expire</button></>}</td></tr>)}</Table>
-  <p className="text-xs text-slate-500 mt-3">Owner sees tenant metadata only — not patient records or clinical data.</p>
-  {pick&&<Modal title={"Custom features – "+pick.name} onClose={()=>setPick(null)}><Feat value={ft} onChange={setFt}/><div className="flex justify-end gap-2 mt-4"><button className="btn-o" onClick={()=>setPick(null)}>Cancel</button><button className="btn" onClick={()=>{run(()=>svc.setTenantPlan(user,pick.slug,"custom",ft));setPick(null)}}>Save</button></div></Modal>}</Card>}
-export function PlansPage(){const {user}=useAuth(),toast=useToast(),bump=useBump();const [d,setD]=useState(()=>JSON.parse(JSON.stringify(getPlans())));
- const save=k=>{try{const p=d[k];svc.savePlan(user,k,{name:p.name,cycle:p.cycle,features:p.features,price:p.price===""||p.price==null?null:Number(p.price)});toast("Plan saved");bump()}catch(e){toast(e.message,"err")}};const up=(k,x)=>setD({...d,[k]:{...d[k],...x}});
- return <div className="space-y-4"><p className="text-sm bg-amber-50 text-amber-900 rounded-lg p-3">Plans, prices and features configured here are what the public homepage and hospital registration display. The values shipped in this demo are sample configuration, not commercial commitments.</p>
-  <div className="grid lg:grid-cols-2 gap-4">{Object.entries(d).map(([k,p])=><Card key={k} title={p.name+(p.custom?" (features chosen per customer)":"")}><div className="grid grid-cols-3 gap-2 mb-3"><div><label className="lbl">Name</label><input className="input" value={p.name} onChange={e=>up(k,{name:e.target.value})}/></div><div><label className="lbl">Price (₹, blank = quote)</label><input className="input" type="number" min="0" value={p.price??""} onChange={e=>up(k,{price:e.target.value})}/></div><div><label className="lbl">Billing cycle</label><input className="input" value={p.cycle} onChange={e=>up(k,{cycle:e.target.value})}/></div></div>
-   {p.custom?<p className="text-sm text-slate-600">Features are selected when approving or changing a specific hospital.</p>:<Feat value={p.features} onChange={x=>up(k,{features:x})}/>}<button className="btn mt-4" onClick={()=>save(k)}>Save plan</button></Card>)}</div></div>}
-export function Demos(){const {user}=useAuth();const rows=svc.listDemos(user);return <Card title="Demo & enquiry requests">{!rows.length?<p className="text-sm text-slate-600 py-4">No requests yet.</p>:<Table cols={["ID","Name","Organisation","Email","Phone","Preference","Status"]}>{rows.map(r=><tr key={r.id} className="border-t"><td className="py-2 pr-4">{r.id}</td><td>{r.name}</td><td>{r.org}</td><td>{r.email}</td><td>{r.phone}</td><td>{r.preference}</td><td><Pill>{r.status}</Pill></td></tr>)}</Table>}</Card>}
-const lk=t=>t.split(/(https?:\/\/\S+#\/\S+)/).map((x,i)=>{const m=x.match(/#(\/\S+?)[.)]?$/);return /^https?:/.test(x)&&m?<Link key={i} className="underline text-primary-600" to={m[1]}>{x.split("#")[1]}</Link>:x});
-export function Outbox(){const {user}=useAuth();const rows=svc.listOutbox(user);return <Card title="Email outbox (simulated — no mail server in demo mode)">{!rows.length?<p className="text-sm text-slate-600 py-4">No emails yet.</p>:<ul className="divide-y">{rows.map(m=><li key={m.id} className="py-3 text-sm"><div className="flex justify-between"><b>{m.subject}</b><span className="text-xs text-slate-500">{m.at.slice(0,16).replace("T"," ")}</span></div><div className="text-slate-600">To: {m.to}</div><div className="mt-1">{lk(m.body)}</div></li>)}</ul>}</Card>}
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import * as svc from "../../mocks/service.js";
+import { getPlans } from "../../mocks/store.js";
+import { FEATURE_LABELS } from "../../config/plans.js";
+import { useAuth } from "../../core/auth/AuthContext.jsx";
+import { Card, Pill } from "../../shared/ui/index.jsx";
+import Modal from "../../shared/ui/Modal.jsx";
+import { useToast } from "../notifications/ToastContext.jsx";
+const useBump = () => {
+  const [, b] = useState(0);
+  return () => b((x) => x + 1);
+};
+const money = (n) =>
+  n == null ? "quote" : "₹" + Number(n).toLocaleString("en-IN");
+const Table = ({ cols, children }) => (
+  <div className="overflow-x-auto">
+    <table className="w-full text-sm">
+      <thead className="text-left text-slate-500">
+        <tr>
+          {cols.map((c) => (
+            <th key={c} className="py-2 pr-4">
+              {c}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>{children}</tbody>
+    </table>
+  </div>
+);
+const Feat = ({ value, onChange }) => (
+  <div className="grid grid-cols-2 gap-1 text-sm">
+    {Object.entries(FEATURE_LABELS).map(([k, l]) => (
+      <label key={k} className="flex gap-2">
+        <input
+          type="checkbox"
+          checked={value.includes(k)}
+          onChange={(e) =>
+            onChange(
+              e.target.checked ? [...value, k] : value.filter((x) => x !== k),
+            )
+          }
+        />
+        {l}
+      </label>
+    ))}
+  </div>
+);
+export function Applications() {
+  const { user } = useAuth(),
+    toast = useToast(),
+    bump = useBump(),
+    [sel, setSel] = useState(null),
+    [res, setRes] = useState(null),
+    [f, setF] = useState({
+      decision: "approve",
+      basis: "payment",
+      note: "",
+      features: [],
+    });
+  const rows = svc.listRegistrations(user),
+    plans = getPlans();
+  const go = () => {
+    try {
+      const o = svc.reviewRegistration(user, sel.id, f);
+      toast("Decision saved");
+      setRes(o.demoLink ? o : null);
+      setSel(null);
+      bump();
+    } catch (e) {
+      toast(e.message, "err");
+    }
+  };
+  return (
+    <Card title="Hospital applications">
+      {!rows.length ? (
+        <p className="text-sm text-slate-600 py-4">
+          No applications yet. They appear when a hospital uses “Register Your
+          Hospital”.
+        </p>
+      ) : (
+        <Table cols={["ID", "Hospital", "Plan", "City", "Email", "Status", ""]}>
+          {rows.map((r) => (
+            <tr key={r.id} className="border-t">
+              <td className="py-2 pr-4">{r.id}</td>
+              <td>{r.name}</td>
+              <td>{plans[r.plan]?.name}</td>
+              <td>{r.city}</td>
+              <td>{r.emailVerified ? "✔ verified" : "not verified"}</td>
+              <td>
+                <Pill>{r.status.replace(/_/g, " ")}</Pill>
+              </td>
+              <td>
+                <button
+                  className="btn-o"
+                  onClick={() => {
+                    setSel(r);
+                    setF({
+                      decision: "approve",
+                      basis: "payment",
+                      note: "",
+                      features: [],
+                    });
+                  }}
+                >
+                  Review
+                </button>
+              </td>
+            </tr>
+          ))}
+        </Table>
+      )}
+      {sel && (
+        <Modal
+          wide
+          title={`Review ${sel.id} – ${sel.name}`}
+          onClose={() => setSel(null)}
+        >
+          <dl className="grid grid-cols-2 gap-2 text-sm mb-4">
+            {[
+              ["Type", sel.type],
+              ["Email", sel.email],
+              ["Phone", sel.phone],
+              [
+                "Address",
+                `${sel.address}, ${sel.city}, ${sel.state} ${sel.postal}`,
+              ],
+              ["Representative", `${sel.repName} (${sel.repDesignation})`],
+              ["Licence", sel.license || "—"],
+              ["Departments", sel.departments],
+              ["Plan", plans[sel.plan]?.name],
+            ].map(([k, v]) => (
+              <div key={k}>
+                <dt className="text-slate-500">{k}</dt>
+                <dd className="font-medium">{v}</dd>
+              </div>
+            ))}
+          </dl>
+          {sel.tenantSlug ? (
+            <p className="text-sm text-green-700">
+              Already approved → tenant “{sel.tenantSlug}”.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              <div>
+                <label className="lbl">Decision</label>
+                <select
+                  className="input"
+                  value={f.decision}
+                  onChange={(e) => setF({ ...f, decision: e.target.value })}
+                >
+                  <option value="approve">Approve & create hospital</option>
+                  <option value="more_info">Request more information</option>
+                  <option value="reject">Reject</option>
+                </select>
+              </div>
+              {f.decision === "approve" && (
+                <>
+                  <div>
+                    <label className="lbl">Subscription activation basis</label>
+                    <select
+                      className="input"
+                      value={f.basis}
+                      onChange={(e) => setF({ ...f, basis: e.target.value })}
+                    >
+                      <option value="payment">Payment verified</option>
+                      <option value="trial">30-day trial</option>
+                      <option value="contract">
+                        Manually approved (contract)
+                      </option>
+                    </select>
+                  </div>
+                  {plans[sel.plan]?.custom && (
+                    <div>
+                      <label className="lbl">
+                        Approved features (Custom plan)
+                      </label>
+                      <Feat
+                        value={f.features}
+                        onChange={(x) => setF({ ...f, features: x })}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+              {f.decision !== "approve" && (
+                <div>
+                  <label className="lbl">Note to applicant</label>
+                  <textarea
+                    className="input"
+                    rows="3"
+                    value={f.note}
+                    onChange={(e) => setF({ ...f, note: e.target.value })}
+                  />
+                </div>
+              )}
+              <div className="flex justify-end gap-2">
+                <button className="btn-o" onClick={() => setSel(null)}>
+                  Cancel
+                </button>
+                <button className="btn" onClick={go}>
+                  Save decision
+                </button>
+              </div>
+            </div>
+          )}
+        </Modal>
+      )}
+      {res && (
+        <Modal title="Hospital created" onClose={() => setRes(null)}>
+          <p className="text-sm">
+            An activation email was queued for the hospital administrator (see
+            Email Outbox).
+          </p>
+          <p className="text-sm mt-2 bg-amber-50 rounded p-2">
+            Activation link:{" "}
+            <Link
+              className="underline"
+              to={res.demoLink.split("#")[1]}
+              onClick={() => setRes(null)}
+            >
+              open activation page
+            </Link>
+          </p>
+        </Modal>
+      )}
+    </Card>
+  );
+}
+export function Hospitals() {
+  const { user } = useAuth(),
+    toast = useToast(),
+    bump = useBump(),
+    [pick, setPick] = useState(null),
+    [ft, setFt] = useState([]);
+  const plans = getPlans();
+  const run = (fn) => {
+    try {
+      fn();
+      bump();
+      toast("Updated");
+    } catch (e) {
+      toast(e.message, "err");
+    }
+  };
+  return (
+    <Card title="Hospitals (tenants)">
+      <Table
+        cols={[
+          "Code",
+          "Hospital",
+          "City",
+          "Plan",
+          "Subscription",
+          "Users",
+          "Status",
+          "Actions",
+        ]}
+      >
+        {svc.listTenants(user).map((t) => (
+          <tr key={t.slug} className="border-t">
+            <td className="py-2 pr-4">{t.code}</td>
+            <td>
+              {t.name}
+              {!t.published && (
+                <span className="text-xs text-slate-500"> (not published)</span>
+              )}
+            </td>
+            <td>{t.city}</td>
+            <td>
+              <select
+                aria-label={"Plan for " + t.name}
+                className="border rounded-lg text-xs py-1"
+                value={t.plan}
+                onChange={(e) =>
+                  plans[e.target.value].custom
+                    ? (setPick(t), setFt(t.features || []))
+                    : run(() => svc.setTenantPlan(user, t.slug, e.target.value))
+                }
+              >
+                {Object.entries(plans).map(([k, p]) => (
+                  <option key={k} value={k}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </td>
+            <td>
+              {t.subscription}
+              {t.trialUntil ? ` → ${t.trialUntil}` : ""}
+            </td>
+            <td>{t.users}</td>
+            <td>
+              <Pill>{t.status}</Pill>
+            </td>
+            <td className="space-x-1 whitespace-nowrap">
+              {t.status !== "active" ? (
+                <button
+                  className="btn-o"
+                  onClick={() =>
+                    run(() => svc.setTenantStatus(user, t.slug, "active"))
+                  }
+                >
+                  Activate
+                </button>
+              ) : (
+                <>
+                  <button
+                    className="btn-o"
+                    onClick={() =>
+                      run(() => svc.setTenantStatus(user, t.slug, "suspended"))
+                    }
+                  >
+                    Suspend
+                  </button>
+                  <button
+                    className="btn-o"
+                    onClick={() =>
+                      run(() => svc.setTenantStatus(user, t.slug, "expired"))
+                    }
+                  >
+                    Expire
+                  </button>
+                </>
+              )}
+            </td>
+          </tr>
+        ))}
+      </Table>
+      <p className="text-xs text-slate-500 mt-3">
+        Owner sees tenant metadata only — not patient records or clinical data.
+      </p>
+      {pick && (
+        <Modal
+          title={"Custom features – " + pick.name}
+          onClose={() => setPick(null)}
+        >
+          <Feat value={ft} onChange={setFt} />
+          <div className="flex justify-end gap-2 mt-4">
+            <button className="btn-o" onClick={() => setPick(null)}>
+              Cancel
+            </button>
+            <button
+              className="btn"
+              onClick={() => {
+                run(() => svc.setTenantPlan(user, pick.slug, "custom", ft));
+                setPick(null);
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </Modal>
+      )}
+    </Card>
+  );
+}
+export function PlansPage() {
+  const { user } = useAuth(),
+    toast = useToast(),
+    bump = useBump();
+  const [d, setD] = useState(() => JSON.parse(JSON.stringify(getPlans())));
+  const save = (k) => {
+    try {
+      const p = d[k];
+      svc.savePlan(user, k, {
+        name: p.name,
+        cycle: p.cycle,
+        features: p.features,
+        price: p.price === "" || p.price == null ? null : Number(p.price),
+      });
+      toast("Plan saved");
+      bump();
+    } catch (e) {
+      toast(e.message, "err");
+    }
+  };
+  const up = (k, x) => setD({ ...d, [k]: { ...d[k], ...x } });
+  return (
+    <div className="space-y-4">
+      <p className="text-sm bg-amber-50 text-amber-900 rounded-lg p-3">
+        Plans, prices and features configured here appear on the public homepage
+        and hospital registration page.
+      </p>
+      <div className="grid lg:grid-cols-2 gap-4">
+        {Object.entries(d).map(([k, p]) => (
+          <Card
+            key={k}
+            title={p.name + (p.custom ? " (features chosen per customer)" : "")}
+          >
+            <div className="grid grid-cols-3 gap-2 mb-3">
+              <div>
+                <label className="lbl">Name</label>
+                <input
+                  className="input"
+                  value={p.name}
+                  onChange={(e) => up(k, { name: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="lbl">Price (₹, blank = quote)</label>
+                <input
+                  className="input"
+                  type="number"
+                  min="0"
+                  value={p.price ?? ""}
+                  onChange={(e) => up(k, { price: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="lbl">Billing cycle</label>
+                <input
+                  className="input"
+                  value={p.cycle}
+                  onChange={(e) => up(k, { cycle: e.target.value })}
+                />
+              </div>
+            </div>
+            {p.custom ? (
+              <p className="text-sm text-slate-600">
+                Features are selected when approving or changing a specific
+                hospital.
+              </p>
+            ) : (
+              <Feat
+                value={p.features}
+                onChange={(x) => up(k, { features: x })}
+              />
+            )}
+            <button className="btn mt-4" onClick={() => save(k)}>
+              Save plan
+            </button>
+          </Card>
+        ))}
+      </div>
+    </div>
+  );
+}
+export function Demos() {
+  const { user } = useAuth();
+  const rows = svc.listDemos(user);
+  return (
+    <Card title="Sales Enquiries">
+      {!rows.length ? (
+        <p className="text-sm text-slate-600 py-4">No requests yet.</p>
+      ) : (
+        <Table
+          cols={[
+            "ID",
+            "Name",
+            "Organisation",
+            "Email",
+            "Phone",
+            "Preference",
+            "Status",
+          ]}
+        >
+          {rows.map((r) => (
+            <tr key={r.id} className="border-t">
+              <td className="py-2 pr-4">{r.id}</td>
+              <td>{r.name}</td>
+              <td>{r.org}</td>
+              <td>{r.email}</td>
+              <td>{r.phone}</td>
+              <td>{r.preference}</td>
+              <td>
+                <Pill>{r.status}</Pill>
+              </td>
+            </tr>
+          ))}
+        </Table>
+      )}
+    </Card>
+  );
+}
+const lk = (t) =>
+  t.split(/(https?:\/\/\S+#\/\S+)/).map((x, i) => {
+    const m = x.match(/#(\/\S+?)[.)]?$/);
+    return /^https?:/.test(x) && m ? (
+      <Link key={i} className="underline text-primary-600" to={m[1]}>
+        {x.split("#")[1]}
+      </Link>
+    ) : (
+      x
+    );
+  });
+export function Outbox() {
+  const { user } = useAuth();
+  const rows = svc.listOutbox(user);
+  return (
+    <Card title="Email Outbox">
+      {!rows.length ? (
+        <p className="text-sm text-slate-600 py-4">No emails yet.</p>
+      ) : (
+        <ul className="divide-y">
+          {rows.map((m) => (
+            <li key={m.id} className="py-3 text-sm">
+              <div className="flex justify-between">
+                <b>{m.subject}</b>
+                <span className="text-xs text-slate-500">
+                  {m.at.slice(0, 16).replace("T", " ")}
+                </span>
+              </div>
+              <div className="text-slate-600">To: {m.to}</div>
+              <div className="mt-1">{lk(m.body)}</div>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Card>
+  );
+}

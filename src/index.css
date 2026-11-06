@@ -1,5 +1,25 @@
 @tailwind base;@tailwind components;@tailwind utilities;
 body{@apply bg-slate-50 text-slate-900 font-sans}
+#root{text-transform:capitalize}#root button{ text-transform:capitalize }#root input,#root textarea{ text-transform:none }#root input::placeholder,#root textarea::placeholder{ text-transform:capitalize }#root select,#root option{ text-transform:capitalize }#root .login-kicker{text-transform:capitalize}
+.appearance-toggle{position:fixed;right:max(1rem,env(safe-area-inset-right));bottom:max(1rem,env(safe-area-inset-bottom));z-index:40;display:grid;place-items:center;width:clamp(44px,5vw,52px);height:clamp(44px,5vw,52px);border:1px solid #cbd5e1;border-radius:9999px;background:#fff;color:#075985;box-shadow:0 8px 24px rgb(15 23 42 / .2);transition:transform .18s ease,background-color .18s ease,color .18s ease}
+.appearance-toggle:hover{transform:translateY(-2px);background:#f1f5f9}
+.appearance-toggle:focus-visible{outline:3px solid #0ea5e9;outline-offset:3px}
+.appearance-toggle svg{width:clamp(19px,2.5vw,23px);height:clamp(19px,2.5vw,23px);fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+html[data-theme="dark"] body{background:#0b1220;color:#e2e8f0}
+html[data-theme="dark"] .bg-white,html[data-theme="dark"] .bg-white\/95,html[data-theme="dark"] .bg-slate-50{background-color:#111c32}
+html[data-theme="dark"] .bg-slate-100,html[data-theme="dark"] .bg-slate-200{background-color:#1e293b}
+html[data-theme="dark"] .bg-gradient-to-br.from-primary-50.to-teal-50{background-image:none;background-color:#1e293b;border-color:#334155}
+html[data-theme="dark"] .bg-white.text-primary-700{background-color:#0f172a;color:#38bdf8;--tw-ring-color:#334155}
+html[data-theme="dark"] .card,html[data-theme="dark"] .bg-white\/90{background-color:#111c32;color:#e2e8f0}
+html[data-theme="dark"] .text-slate-900,html[data-theme="dark"] .text-slate-800,html[data-theme="dark"] .text-slate-700{color:#e2e8f0}
+html[data-theme="dark"] .text-slate-600,html[data-theme="dark"] .text-slate-500{color:#a7b4c8}
+html[data-theme="dark"] .border-slate-100,html[data-theme="dark"] .border-slate-200,html[data-theme="dark"] .border-slate-300{border-color:#334155}
+html[data-theme="dark"] .btn-o{background-color:#1e293b;color:#e2e8f0;border-color:#475569}
+html[data-theme="dark"] .login-shell,html[data-theme="dark"] .login-form,html[data-theme="dark"] .login-home{background-color:#111c32;color:#e2e8f0}
+html[data-theme="dark"] .login-home{border-color:#475569}
+html[data-theme="dark"] .input,html[data-theme="dark"] input,html[data-theme="dark"] select,html[data-theme="dark"] textarea{background-color:#0b1220;color:#e2e8f0;border-color:#475569}
+html[data-theme="dark"] .appearance-toggle{background:#1e293b;color:#fbbf24;border-color:#475569}
+html[data-theme="dark"] .appearance-toggle:hover{background:#334155}
 .btn{@apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold bg-primary-600 text-white shadow-sm hover:bg-primary-700 disabled:opacity-50}
 .btn-o{@apply inline-flex items-center justify-center rounded-xl px-4 py-2 text-sm font-semibold border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 hover:border-slate-400}
 .card{@apply bg-white border border-slate-200/80 rounded-2xl shadow-card p-5}
